@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Área do Cliente — Adenir Teixeira</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#c9a94e;--dark:#0d0f17;--surface:#13161f;--border:#1e2235;--text:#e8eaf6;--muted:#8892b0;--green:#4ade80;--red:#f87171}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--dark);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse at 30% 40%,rgba(201,169,78,.06),transparent 60%);pointer-events:none}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:44px;width:100%;max-width:420px;position:relative}
+.card::before{content:'';position:absolute;top:0;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.logo{text-align:center;margin-bottom:32px}
+.logo a{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--gold);text-decoration:none}
+.logo .sub{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin-top:3px}
+.tabs{display:flex;background:var(--dark);border-radius:8px;padding:3px;margin-bottom:28px}
+.tab-btn{flex:1;padding:8px;border:none;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;border-radius:6px;transition:all .2s}
+.tab-btn.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.form-group{margin-bottom:18px}
+.form-group label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
+.form-group input{width:100%;background:var(--dark);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-size:14px;outline:none;transition:border-color .2s}
+.form-group input:focus{border-color:var(--gold)}
+.form-group input::placeholder{color:#4a5568}
+.btn-submit{width:100%;background:var(--gold);color:#0d0f17;border:none;border-radius:8px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;margin-top:6px;transition:opacity .2s}
+.btn-submit:hover{opacity:.88}
+.divider{display:flex;align-items:center;gap:12px;margin:20px 0;color:var(--muted);font-size:12px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.social-btn{width:100%;background:transparent;border:1px solid var(--border);border-radius:8px;padding:11px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;transition:border-color .2s}
+.social-btn:hover{border-color:rgba(201,169,78,.4)}
+.link{text-align:center;margin-top:20px;font-size:12px;color:var(--muted)}
+.link a{color:var(--gold);text-decoration:none}
+.msg{padding:10px 14px;border-radius:6px;font-size:12px;margin-bottom:16px;display:none}
+.msg.error{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);color:var(--red)}
+.msg.success{background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.3);color:var(--green)}
+.back{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12px;text-decoration:none;margin-bottom:24px;transition:color .2s}
+.back:hover{color:var(--text)}
+#tab-cadastro{display:none}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <a href="../index.html" class="back">← Voltar ao site</a>
+
+  <div class="logo">
+    <a href="../index.html">Adenir Teixeira</a>
+    <div class="sub">Assessoria Patrimonial</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('login')">Entrar</button>
+    <button class="tab-btn" onclick="showTab('cadastro')">Cadastrar</button>
+  </div>
+
+  <!-- LOGIN -->
+  <div id="tab-login">
+    <div class="msg" id="login-msg"></div>
+    <div class="form-group">
+      <label>E-mail</label>
+      <input type="email" id="login-email" placeholder="seu@email.com.br">
+    </div>
+    <div class="form-group">
+      <label>Senha</label>
+      <input type="password" id="login-senha" placeholder="••••••••">
+    </div>
+    <button class="btn-submit" onclick="fazerLogin()">Entrar na minha área</button>
+    <div class="link"><a href="#" onclick="esqueciSenha()">Esqueci minha senha</a></div>
+
+    <div class="divider">ou acesse como visitante</div>
+    <button class="social-btn" onclick="acessarDemo()">🔍 Explorar simulador sem cadastro</button>
+  </div>
+
+  <!-- CADASTRO -->
+  <div id="tab-cadastro">
+    <div class="msg" id="cad-msg"></div>
+    <div class="form-group">
+      <label>Nome completo</label>
+      <input type="text" id="cad-nome" placeholder="Seu nome">
+    </div>
+    <div class="form-group">
+      <label>E-mail</label>
+      <input type="email" id="cad-email" placeholder="seu@email.com.br">
+    </div>
+    <div class="form-group">
+      <label>Telefone / WhatsApp</label>
+      <input type="tel" id="cad-tel" placeholder="(62) 9 0000-0000">
+    </div>
+    <div class="form-group">
+      <label>Senha</label>
+      <input type="password" id="cad-senha" placeholder="Mínimo 8 caracteres">
+    </div>
+    <div class="form-group">
+      <label>Perfil patrimonial estimado</label>
+      <select id="cad-perfil" style="width:100%;background:var(--dark);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-size:14px;outline:none">
+        <option value="">Selecione...</option>
+        <option value="A">Até R$ 500k</option>
+        <option value="B">R$ 500k a R$ 2M</option>
+        <option value="C">R$ 2M a R$ 10M</option>
+        <option value="D">Acima de R$ 10M</option>
+      </select>
+    </div>
+    <button class="btn-submit" onclick="fazerCadastro()">Criar minha conta gratuita</button>
+    <div class="link" style="font-size:11px;color:var(--muted)">Ao cadastrar, você concorda com os termos de uso e política de privacidade</div>
+  </div>
+</div>
+
+<script>
+function showTab(t){
+  document.getElementById('tab-login').style.display=t==='login'?'block':'none';
+  document.getElementById('tab-cadastro').style.display=t==='cadastro'?'block':'none';
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',(t==='login'&&i===0)||(t==='cadastro'&&i===1)));
+}
+function showMsg(id,type,txt){
+  const el=document.getElementById(id);
+  el.className='msg '+type; el.textContent=txt; el.style.display='block';
+  setTimeout(()=>el.style.display='none',4000);
+}
+function fazerLogin(){
+  const email=document.getElementById('login-email').value;
+  const senha=document.getElementById('login-senha').value;
+  if(!email||!senha){showMsg('login-msg','error','Preencha e-mail e senha.');return}
+  // Simulação — substituir por autenticação real (Supabase/Firebase)
+  const usuarios=JSON.parse(localStorage.getItem('usuarios')||'[]');
+  const user=usuarios.find(u=>u.email===email&&u.senha===senha);
+  if(user){
+    localStorage.setItem('logado',JSON.stringify(user));
+    window.location.href='dashboard.html';
+  } else {
+    showMsg('login-msg','error','E-mail ou senha incorretos.');
+  }
+}
+function fazerCadastro(){
+  const nome=document.getElementById('cad-nome').value;
+  const email=document.getElementById('cad-email').value;
+  const tel=document.getElementById('cad-tel').value;
+  const senha=document.getElementById('cad-senha').value;
+  const perfil=document.getElementById('cad-perfil').value;
+  if(!nome||!email||!senha){showMsg('cad-msg','error','Preencha todos os campos obrigatórios.');return}
+  if(senha.length<8){showMsg('cad-msg','error','Senha deve ter ao menos 8 caracteres.');return}
+  const usuarios=JSON.parse(localStorage.getItem('usuarios')||'[]');
+  if(usuarios.find(u=>u.email===email)){showMsg('cad-msg','error','Este e-mail já está cadastrado.');return}
+  const user={nome,email,tel,senha,perfil,criado:new Date().toISOString()};
+  usuarios.push(user);
+  localStorage.setItem('usuarios',JSON.stringify(usuarios));
+  localStorage.setItem('logado',JSON.stringify(user));
+  showMsg('cad-msg','success','Conta criada! Redirecionando...');
+  setTimeout(()=>window.location.href='dashboard.html',1500);
+}
+function acessarDemo(){
+  localStorage.setItem('logado',JSON.stringify({nome:'Visitante',email:'demo@murus.app',perfil:'demo'}));
+  window.location.href='dashboard.html';
+}
+function esqueciSenha(){alert('Em breve: recuperação por e-mail. Para acesso, entre em contato pelo WhatsApp.')}
+</script>
+</body>
+</html>

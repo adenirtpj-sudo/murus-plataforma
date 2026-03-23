@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Adenir Teixeira Patrimonial</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#c9a94e;--dark:#0d0f17;--surface:#13161f;--s2:#1a1d27;--border:#1e2235;--text:#e8eaf6;--muted:#8892b0;--green:#4ade80;--red:#f87171;--blue:#6c7cff;--teal:#2dd4bf}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--dark);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:50}
+.sb-logo{padding:20px 18px;border-bottom:1px solid var(--border)}
+.sb-logo a{font-family:'Playfair Display',serif;font-size:16px;color:var(--gold);text-decoration:none;display:block}
+.sb-logo span{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.sb-user{padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.sb-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--gold),rgba(201,169,78,.4));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#0d0f17;flex-shrink:0}
+.sb-username{font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-perfil{font-size:10px;color:var(--muted)}
+.sb-nav{flex:1;padding:14px 10px;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:6px;color:var(--muted);text-decoration:none;font-size:12px;font-weight:500;margin-bottom:3px;transition:all .2s;cursor:pointer;border:none;background:transparent;width:100%;text-align:left}
+.nav-item:hover,.nav-item.active{background:rgba(201,169,78,.08);color:var(--text)}
+.nav-item.active{color:var(--gold)}
+.nav-item .icon{font-size:15px;flex-shrink:0}
+.sb-bottom{padding:12px 10px;border-top:1px solid var(--border)}
+
+/* MAIN */
+.main{margin-left:220px;padding:24px;min-height:100vh}
+.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.top-bar h1{font-family:'Playfair Display',serif;font-size:22px}
+.top-bar .badge{background:rgba(201,169,78,.1);border:1px solid rgba(201,169,78,.2);border-radius:5px;padding:4px 12px;font-size:11px;color:var(--gold);font-weight:700}
+
+/* CARDS */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:24px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}
+.card .cl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.card .cv{font-size:20px;font-weight:800}
+.card .cs{font-size:10px;color:var(--muted);margin-top:4px}
+.progress-bar{height:4px;background:var(--s2);border-radius:2px;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;border-radius:2px}
+
+/* PANELS */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:18px}
+.panel h2{font-size:13px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.panel-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+/* SECTION TABS */
+.section{display:none}
+.section.active{display:block}
+
+/* AGENDAMENTO */
+.agenda-form{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.f{display:flex;flex-direction:column;gap:6px}
+.f label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase}
+.f input,.f select,.f textarea{background:var(--dark);border:1px solid var(--border);border-radius:6px;padding:9px 12px;color:var(--text);font-size:13px;outline:none}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--gold)}
+.f textarea{resize:vertical;min-height:80px}
+.f.full{grid-column:1/-1}
+.btn{padding:10px 20px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:opacity .2s}
+.btn-gold{background:var(--gold);color:#0d0f17}
+.btn-gold:hover{opacity:.88}
+.btn-outline{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold)}
+
+/* DIAGNOSTICO */
+.dim{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:12px}
+.dim-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.dim-header h3{font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px}
+.dim-score{font-size:11px;font-weight:700;padding:2px 10px;border-radius:10px}
+.score-r{background:rgba(248,113,113,.15);color:var(--red)}
+.score-y{background:rgba(245,158,11,.15);color:#f59e0b}
+.score-g{background:rgba(74,222,128,.15);color:var(--green)}
+.dim-items{display:flex;flex-direction:column;gap:6px}
+.dim-item{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted)}
+.dim-item::before{content:'';width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dim-item.ok::before{background:var(--green)}
+.dim-item.warn::before{background:#f59e0b}
+.dim-item.bad::before{background:var(--red)}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-logo">
+    <a href="../index.html">Adenir Teixeira</a>
+    <span>Assessoria Patrimonial</span>
+  </div>
+  <div class="sb-user">
+    <div class="sb-avatar" id="sb-av">?</div>
+    <div>
+      <div class="sb-username" id="sb-nome">Carregando...</div>
+      <div class="sb-perfil" id="sb-perfil">—</div>
+    </div>
+  </div>
+  <nav class="sb-nav">
+    <button class="nav-item active" onclick="showSection('resumo',this)"><span class="icon">📊</span>Resumo</button>
+    <button class="nav-item" onclick="window.location.href='simulador.html'"><span class="icon">🧮</span>Simulador</button>
+    <button class="nav-item" onclick="showSection('diagnostico',this)"><span class="icon">🔍</span>Diagnóstico</button>
+    <button class="nav-item" onclick="showSection('agenda',this)"><span class="icon">📅</span>Agendar Consultoria</button>
+    <button class="nav-item" onclick="showSection('documentos',this)"><span class="icon">📁</span>Documentos</button>
+    <button class="nav-item" onclick="showSection('tributacao',this)"><span class="icon">🧾</span>Tributação</button>
+  </nav>
+  <div class="sb-bottom">
+    <button class="nav-item" onclick="sair()" style="color:var(--red)"><span class="icon">🚪</span>Sair</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="top-bar">
+    <h1 id="top-titulo">Resumo Patrimonial</h1>
+    <div class="badge">🏛️ Área Restrita</div>
+  </div>
+
+  <!-- RESUMO -->
+  <div id="sec-resumo" class="section active">
+    <div class="cards">
+      <div class="card"><div class="cl">Patrimônio Total</div><div class="cv" style="color:var(--gold)">—</div><div class="cs">A preencher no simulador</div></div>
+      <div class="card"><div class="cl">Renda Mensal</div><div class="cv" style="color:var(--green)">—</div><div class="cs">Dividendos + aluguéis</div><div class="progress-bar"><div class="progress-fill" style="width:0%;background:var(--green)"></div></div></div>
+      <div class="card"><div class="cl">IR Anual Estimado</div><div class="cv" style="color:var(--red)">—</div><div class="cs">Sobre rendimentos</div></div>
+      <div class="card"><div class="cl">Meta Atingida</div><div class="cv" style="color:var(--blue)">—</div><div class="cs">Preencha os dados</div></div>
+    </div>
+
+    <div class="panel-grid">
+      <div class="panel">
+        <h2>🚀 Primeiros passos</h2>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--s2);border-radius:6px;font-size:12px">
+            <span style="font-size:18px">1️⃣</span>
+            <div><div style="font-weight:700;margin-bottom:2px">Preencha o simulador</div><div style="color:var(--muted)">Lance seus ativos e veja a projeção patrimonial</div></div>
+            <button onclick="window.location.href='simulador.html'" class="btn btn-gold" style="margin-left:auto;padding:6px 14px;font-size:11px">Ir →</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--s2);border-radius:6px;font-size:12px">
+            <span style="font-size:18px">2️⃣</span>
+            <div><div style="font-weight:700;margin-bottom:2px">Faça o diagnóstico</div><div style="color:var(--muted)">Avalie as 5 dimensões do seu patrimônio</div></div>
+            <button onclick="showSection('diagnostico',null)" class="btn btn-outline" style="margin-left:auto;padding:6px 14px;font-size:11px">Ver →</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--s2);border-radius:6px;font-size:12px">
+            <span style="font-size:18px">3️⃣</span>
+            <div><div style="font-weight:700;margin-bottom:2px">Agende uma consultoria</div><div style="color:var(--muted)">Análise aprofundada com Adenir Teixeira</div></div>
+            <button onclick="showSection('agenda',null)" class="btn btn-outline" style="margin-left:auto;padding:6px 14px;font-size:11px">Agendar →</button>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>📰 Atualizações Legislativas</h2>
+        <div style="display:flex;flex-direction:column;gap:10px;font-size:12px">
+          <div style="padding:10px;background:rgba(201,169,78,.05);border:1px solid rgba(201,169,78,.15);border-radius:6px">
+            <div style="font-weight:700;color:var(--gold);margin-bottom:3px">Lei 15.270/2025 — Vigente jan/2026</div>
+            <div style="color:var(--muted)">FIIs mantêm isenção. Dividendos PJ acima de R$50k/mês terão 10% de IRRF. IRPF-M para rendas acima de R$600k/ano.</div>
+          </div>
+          <div style="padding:10px;background:var(--s2);border-radius:6px">
+            <div style="font-weight:700;margin-bottom:3px">EC 132/2023 — ITCMD progressivo</div>
+            <div style="color:var(--muted)">Todos os estados obrigados a adotar progressividade. Planejamento sucessório se tornou urgente.</div>
+          </div>
+          <div style="padding:10px;background:var(--s2);border-radius:6px">
+            <div style="font-weight:700;margin-bottom:3px">Lei 14.754/2023 — Offshores</div>
+            <div style="color:var(--muted)">Alíquota unificada de 15% para rendimentos de ativos financeiros no exterior. Declaração obrigatória.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIAGNÓSTICO -->
+  <div id="sec-diagnostico" class="section">
+    <div class="panel">
+      <h2>🔍 Diagnóstico Patrimonial — 5 Dimensões</h2>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:18px">Avalie cada dimensão do seu patrimônio. Clique em cada item para expandir e detalhar.</p>
+
+      <div class="dim">
+        <div class="dim-header">
+          <h3>📦 1. Composição Patrimonial</h3>
+          <span class="dim-score score-y">Pendente</span>
+        </div>
+        <div class="dim-items">
+          <div class="dim-item warn">Preencha o simulador para mapear a composição atual</div>
+          <div class="dim-item warn">Verifique se há concentração excessiva em um único ativo (>50%)</div>
+          <div class="dim-item warn">Liste ativos no exterior para conformidade com CBE</div>
+        </div>
+      </div>
+
+      <div class="dim">
+        <div class="dim-header">
+          <h3>🧾 2. Exposição Tributária</h3>
+          <span class="dim-score score-r">Atenção</span>
+        </div>
+        <div class="dim-items">
+          <div class="dim-item ok">FIIs negociados em bolsa: rendimentos excluídos do IRPF-M ✓</div>
+          <div class="dim-item ok">LCI/LCA/CRI/CRA: excluídos da base do IRPF-M ✓</div>
+          <div class="dim-item warn">Verificar se soma anual de rendimentos supera R$ 600k (gatilho IRPF-M)</div>
+          <div class="dim-item bad">Dividendos de PJ acima de R$ 50k/mês agora sujeitos a 10% IRRF (jan/2026)</div>
+        </div>
+      </div>
+
+      <div class="dim">
+        <div class="dim-header">
+          <h3>⚖️ 3. Exposição Sucessória</h3>
+          <span class="dim-score score-r">Risco</span>
+        </div>
+        <div class="dim-items">
+          <div class="dim-item bad">Verifique se possui testamento atualizado</div>
+          <div class="dim-item bad">ITCMD com progressividade obrigatória após EC 132/2023 — planeje</div>
+          <div class="dim-item warn">Ativos nos EUA: risco de Estate Tax de até 40% (isenção apenas USD 60k)</div>
+          <div class="dim-item warn">Avalie doação de cotas de holding com usufruto</div>
+        </div>
+      </div>
+
+      <div class="dim">
+        <div class="dim-header">
+          <h3>🏛️ 4. Governança e Controle</h3>
+          <span class="dim-score score-y">Avaliar</span>
+        </div>
+        <div class="dim-items">
+          <div class="dim-item warn">Existe holding patrimonial constituída?</div>
+          <div class="dim-item warn">Há procuração para administração em caso de incapacidade?</div>
+          <div class="dim-item warn">Ativos digitais (senhas, acessos) estão documentados?</div>
+          <div class="dim-item ok">Recomendado: seguro de vida atrelado ao planejamento patrimonial</div>
+        </div>
+      </div>
+
+      <div class="dim">
+        <div class="dim-header">
+          <h3>🛡️ 5. Proteção Jurídica</h3>
+          <span class="dim-score score-y">Avaliar</span>
+        </div>
+        <div class="dim-items">
+          <div class="dim-item warn">Verifique exposição como sócio (passivos ocultos, garantias pessoais)</div>
+          <div class="dim-item warn">Imóvel de família está registrado? (proteção Lei 8.009/90)</div>
+          <div class="dim-item ok">Regime de bens: verifique se o pacto antenupcial está atualizado</div>
+          <div class="dim-item warn">Seguro de responsabilidade civil profissional em dia?</div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px;text-align:center">
+        <button onclick="showSection('agenda',null)" class="btn btn-gold">Agendar diagnóstico completo com Adenir →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AGENDAMENTO -->
+  <div id="sec-agenda" class="section">
+    <div class="panel">
+      <h2>📅 Agendar Consultoria Patrimonial</h2>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:20px">Preencha os dados abaixo para solicitar uma consultoria com Adenir Teixeira. Retornaremos em até 24h para confirmar o horário.</p>
+      <div class="agenda-form" id="form-agenda">
+        <div class="f"><label>Nome completo *</label><input type="text" id="ag-nome" placeholder="Seu nome"></div>
+        <div class="f"><label>E-mail *</label><input type="email" id="ag-email" placeholder="seu@email.com"></div>
+        <div class="f"><label>WhatsApp *</label><input type="tel" id="ag-tel" placeholder="(62) 9 0000-0000"></div>
+        <div class="f"><label>Tipo de consultoria</label>
+          <select id="ag-tipo">
+            <option>Diagnóstico patrimonial completo</option>
+            <option>Planejamento tributário</option>
+            <option>Holding e sucessão</option>
+            <option>Internacionalização (offshore/LLC)</option>
+            <option>Leilão de imóveis</option>
+            <option>Outro</option>
+          </select>
+        </div>
+        <div class="f"><label>Patrimônio estimado</label>
+          <select id="ag-pat">
+            <option>Até R$ 500k</option>
+            <option>R$ 500k a R$ 2M</option>
+            <option>R$ 2M a R$ 10M</option>
+            <option>Acima de R$ 10M</option>
+          </select>
+        </div>
+        <div class="f"><label>Preferência de horário</label>
+          <select id="ag-hora">
+            <option>Manhã (8h-12h)</option>
+            <option>Tarde (13h-18h)</option>
+            <option>Indiferente</option>
+          </select>
+        </div>
+        <div class="f full"><label>Contexto / dúvidas principais</label>
+          <textarea id="ag-obs" placeholder="Descreva brevemente sua situação patrimonial e os principais pontos que deseja abordar..."></textarea>
+        </div>
+        <div class="f full" style="flex-direction:row;gap:12px">
+          <button onclick="enviarAgendamento()" class="btn btn-gold">Solicitar consultoria →</button>
+          <button onclick="showSection('resumo',null)" class="btn btn-outline">Cancelar</button>
+        </div>
+      </div>
+      <div id="agenda-ok" style="display:none;text-align:center;padding:30px">
+        <div style="font-size:40px;margin-bottom:16px">✅</div>
+        <div style="font-size:16px;font-weight:700;margin-bottom:8px">Solicitação enviada!</div>
+        <div style="font-size:13px;color:var(--muted)">Entraremos em contato em até 24h pelo WhatsApp ou e-mail informado para confirmar o horário da consultoria.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DOCUMENTOS -->
+  <div id="sec-documentos" class="section">
+    <div class="panel">
+      <h2>📁 Documentos e Relatórios</h2>
+      <div style="text-align:center;padding:40px;color:var(--muted);font-size:13px">
+        <div style="font-size:36px;margin-bottom:12px">📄</div>
+        <div>Seus relatórios e documentos aparecerão aqui após a primeira consultoria.</div>
+        <button onclick="showSection('agenda',null)" class="btn btn-gold" style="margin-top:20px">Agendar primeira consultoria →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRIBUTAÇÃO -->
+  <div id="sec-tributacao" class="section">
+    <div class="panel">
+      <h2>🧾 Análise Tributária — Lei 15.270/2025</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
+        <div style="background:var(--s2);border-radius:8px;padding:14px">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:700;text-transform:uppercase">Rendimentos EXCLUÍDOS do IRPF-M</div>
+          <div style="display:flex;flex-direction:column;gap:6px;font-size:11px">
+            <div style="color:var(--green)">✓ FIIs (bolsa, ≥100 cotistas)</div>
+            <div style="color:var(--green)">✓ LCI / LCA</div>
+            <div style="color:var(--green)">✓ CRI / CRA</div>
+            <div style="color:var(--green)">✓ Poupança</div>
+            <div style="color:var(--green)">✓ Debêntures de infraestrutura</div>
+            <div style="color:var(--green)">✓ Fiagros (bolsa, ≥100 cotistas)</div>
+            <div style="color:var(--green)">✓ Dividendos de resultados até 2025</div>
+            <div style="color:var(--green)">✓ Doações em adiantamento de herança</div>
+          </div>
+        </div>
+        <div style="background:var(--s2);border-radius:8px;padding:14px">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:700;text-transform:uppercase">Rendimentos que ENTRAM na base</div>
+          <div style="display:flex;flex-direction:column;gap:6px;font-size:11px">
+            <div style="color:#f59e0b">⚠ Subsídio / salário / pró-labore</div>
+            <div style="color:#f59e0b">⚠ CDB (mas IR fonte já supera 10%)</div>
+            <div style="color:#f59e0b">⚠ Tesouro Direto (sem adicional efetivo)</div>
+            <div style="color:var(--red)">✗ Dividendos PJ pós-2025 (>R$50k/mês)</div>
+            <div style="color:var(--red)">✗ Aluguéis de imóveis diretos</div>
+            <div style="color:var(--red)">✗ Ganhos de capital em bolsa</div>
+            <div style="color:var(--red)">✗ Rendimentos de ações</div>
+          </div>
+        </div>
+      </div>
+      <div style="background:rgba(201,169,78,.05);border:1px solid rgba(201,169,78,.15);border-radius:8px;padding:16px;font-size:12px">
+        <div style="font-weight:700;color:var(--gold);margin-bottom:8px">📐 Cálculo do IRPF-M</div>
+        <div style="color:var(--muted);line-height:1.7">
+          Gatilho: soma de rendimentos > R$ 600k/ano (após exclusões)<br>
+          Alíquota: progressiva de 0% a 10% (faixa R$ 600k-1,2M) | 10% fixo acima de R$ 1,2M<br>
+          Dedução: todo IR já pago (tabela progressiva + exclusivo na fonte) é abatido do IRPF-M<br>
+          <strong style="color:var(--text)">Na prática:</strong> quem recebe principalmente de FIIs, LCI e LCA raramente tem imposto adicional.
+        </div>
+      </div>
+      <div style="margin-top:16px;text-align:center">
+        <button onclick="window.location.href='simulador.html'" class="btn btn-gold">Simular meu impacto tributário →</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Auth check
+const user = JSON.parse(localStorage.getItem('logado')||'null');
+if(!user){window.location.href='login.html'}
+else{
+  const ini=user.nome?user.nome.charAt(0).toUpperCase():'?';
+  document.getElementById('sb-av').textContent=ini;
+  document.getElementById('sb-nome').textContent=user.nome||'Visitante';
+  const perfis={'A':'Até R$500k','B':'R$500k-2M','C':'R$2M-10M','D':'>R$10M','demo':'Demo'};
+  document.getElementById('sb-perfil').textContent=perfis[user.perfil]||'—';
+  // Pre-fill form
+  if(document.getElementById('ag-nome'))document.getElementById('ag-nome').value=user.nome||'';
+  if(document.getElementById('ag-email'))document.getElementById('ag-email').value=user.email||'';
+}
+
+function showSection(id,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  const titulos={resumo:'Resumo Patrimonial',diagnostico:'Diagnóstico — 5 Dimensões',agenda:'Agendar Consultoria',documentos:'Meus Documentos',tributacao:'Tributação — Lei 15.270/2025'};
+  document.getElementById('top-titulo').textContent=titulos[id]||id;
+}
+function sair(){localStorage.removeItem('logado');window.location.href='login.html'}
+function enviarAgendamento(){
+  const nome=document.getElementById('ag-nome').value;
+  const email=document.getElementById('ag-email').value;
+  const tel=document.getElementById('ag-tel').value;
+  if(!nome||!email||!tel){alert('Preencha nome, e-mail e WhatsApp.');return}
+  // Salvar localmente (futuro: enviar para API/email)
+  const agend=JSON.parse(localStorage.getItem('agendamentos')||'[]');
+  agend.push({nome,email,tel,tipo:document.getElementById('ag-tipo').value,pat:document.getElementById('ag-pat').value,hora:document.getElementById('ag-hora').value,obs:document.getElementById('ag-obs').value,data:new Date().toISOString()});
+  localStorage.setItem('agendamentos',JSON.stringify(agend));
+  document.getElementById('form-agenda').style.display='none';
+  document.getElementById('agenda-ok').style.display='block';
+}
+</script>
+</body>
+</html>
