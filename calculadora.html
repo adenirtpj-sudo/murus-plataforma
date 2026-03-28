@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora Patrimonial — Adenir Teixeira</title>
+<style>
+:root{
+  --bg:#0d0f1a;--surface:#141725;--s2:#1c1f30;--s3:#22263a;
+  --border:#2a2e4a;--accent:#6c7cff;--g:#4ade80;--y:#f59e0b;
+  --r:#f87171;--text:#e8eaf6;--muted:#8892b0;--gold:#c9a94e;
+  --purple:#a78bfa;--teal:#2dd4bf;--orange:#fb923c;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;min-height:100vh}
+/* HEADER */
+.hdr{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between}
+.hdr-left{display:flex;align-items:center;gap:10px}
+.logo{font-size:18px;font-weight:900;color:var(--gold);letter-spacing:-.5px}
+.logo span{color:var(--accent)}
+.subtitle{color:var(--muted);font-size:11px}
+.hdr-right{color:var(--muted);font-size:11px}
+/* TABS NAV */
+.tabs-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;display:flex;gap:0;overflow-x:auto}
+.tab-btn{padding:12px 18px;font-size:12px;font-weight:700;color:var(--muted);border:none;background:transparent;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+/* MAIN */
+.main{padding:16px 20px;max-width:1200px;margin:0 auto}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+/* GRID LAYOUT */
+.calc-grid{display:grid;grid-template-columns:320px 1fr;gap:16px;align-items:start}
+@media(max-width:768px){.calc-grid{grid-template-columns:1fr}}
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}
+.card-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.card-title::after{content:'';flex:1;height:1px;background:var(--border)}
+/* FORM FIELDS */
+.f{margin-bottom:10px}
+.f label{display:block;font-size:10px;color:var(--muted);margin-bottom:3px;font-weight:600;letter-spacing:.03em}
+.f input,.f select{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text);font-size:12px;outline:none;transition:border-color .2s}
+.f input:focus,.f select:focus{border-color:var(--accent)}
+.f input[type=range]{padding:4px 0;background:transparent;cursor:pointer}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.hint{font-size:10px;color:var(--muted);margin-top:3px}
+/* RESULTS */
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.result-grid.r3{grid-template-columns:1fr 1fr 1fr}
+.metric{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:12px}
+.metric .ml{font-size:10px;color:var(--muted);margin-bottom:4px;font-weight:600}
+.metric .mv{font-size:20px;font-weight:800}
+.metric .ms{font-size:10px;color:var(--muted);margin-top:3px}
+.metric.green .mv{color:var(--g)}
+.metric.red .mv{color:var(--r)}
+.metric.gold .mv{color:var(--gold)}
+.metric.accent .mv{color:var(--accent)}
+.metric.purple .mv{color:var(--purple)}
+/* COMPARISON TABLE */
+.cmp-table{width:100%;border-collapse:collapse}
+.cmp-table th{background:var(--s3);font-size:10px;font-weight:800;text-transform:uppercase;color:var(--muted);padding:9px 12px;text-align:right;border-bottom:1px solid var(--border)}
+.cmp-table th:first-child{text-align:left}
+.cmp-table td{padding:9px 12px;border-bottom:1px solid var(--border);font-size:12px;text-align:right}
+.cmp-table td:first-child{text-align:left;color:var(--muted);font-size:11px}
+.cmp-table tr:last-child td{border-bottom:none;font-weight:800;font-size:13px}
+.cmp-table .pf-col{color:var(--y)}
+.cmp-table .hold-col{color:var(--teal)}
+.cmp-table .eco-col{color:var(--g)}
+/* BADGE */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700}
+.badge.green{background:rgba(74,222,128,.12);color:var(--g);border:1px solid rgba(74,222,128,.2)}
+.badge.red{background:rgba(248,113,113,.12);color:var(--r);border:1px solid rgba(248,113,113,.2)}
+.badge.gold{background:rgba(201,169,78,.12);color:var(--gold);border:1px solid rgba(201,169,78,.2)}
+.badge.blue{background:rgba(108,124,255,.12);color:var(--accent);border:1px solid rgba(108,124,255,.2)}
+/* BAR CHART */
+.bar-wrap{margin:14px 0}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.bar-row .bar-label{font-size:11px;color:var(--muted);width:140px;flex-shrink:0}
+.bar-track{flex:1;background:var(--s3);border-radius:4px;height:20px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width .4s ease;display:flex;align-items:center;padding-left:6px;font-size:10px;font-weight:700;color:#fff;white-space:nowrap}
+.bar-val{font-size:11px;font-weight:700;width:100px;text-align:right;flex-shrink:0}
+/* SECTION HEADER */
+.sec-hdr{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:16px 0 10px;display:flex;align-items:center;gap:8px}
+.sec-hdr::after{content:'';flex:1;height:1px;background:var(--border)}
+/* VERDICT */
+.verdict{border-radius:10px;padding:14px 16px;margin-top:14px;display:flex;align-items:flex-start;gap:12px}
+.verdict.green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2)}
+.verdict.yellow{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2)}
+.verdict.red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2)}
+.verdict-icon{font-size:20px;flex-shrink:0}
+.verdict-text .vt{font-size:13px;font-weight:800;margin-bottom:4px}
+.verdict-text .vs{font-size:11px;color:var(--muted);line-height:1.5}
+/* PRINT */
+@media print{.hdr-right,.tabs-nav,#print-btn{display:none}.tab-panel{display:block!important}.main{padding:0}}
+/* SLIDER */
+.slider-wrap{display:flex;align-items:center;gap:8px}
+.slider-wrap input[type=range]{flex:1}
+.slider-val{font-size:12px;font-weight:700;color:var(--accent);min-width:36px;text-align:right}
+/* DIVIDER */
+.divider{height:1px;background:var(--border);margin:14px 0}
+/* ALERT */
+.alert{background:rgba(108,124,255,.08);border:1px solid rgba(108,124,255,.2);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--muted);line-height:1.5;margin-top:10px}
+.alert strong{color:var(--accent)}
+/* TAG INPUT */
+.tag-group{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.tag{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--s2);color:var(--muted);transition:all .2s}
+.tag.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-left">
+    <div>
+      <div class="logo">Murus <span>Patrimonial</span></div>
+      <div class="subtitle">Calculadora de Planejamento Tributário</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <button id="print-btn" onclick="window.print()" style="background:var(--s2);border:1px solid var(--border);color:var(--muted);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:11px">⎙ Imprimir / PDF</button>
+  </div>
+</div>
+
+<div class="tabs-nav">
+  <button class="tab-btn active" onclick="showTab('aluguel',this)">🏠 Aluguel — PF vs. Holding</button>
+  <button class="tab-btn" onclick="showTab('renda',this)">📈 Renda Passiva</button>
+  <button class="tab-btn" onclick="showTab('gcap',this)">🏦 Ganho de Capital</button>
+  <button class="tab-btn" onclick="showTab('irpfm',this)">⚖️ IRPF-M — Lei 15.270/2025</button>
+</div>
+
+<div class="main">
+
+<!-- ===================== TAB 1: ALUGUEL ===================== -->
+<div id="tab-aluguel" class="tab-panel active">
+  <div class="calc-grid">
+    <div>
+      <div class="card">
+        <div class="card-title">📋 Dados do Cliente</div>
+        <div class="f">
+          <label>Nome do cliente (opcional)</label>
+          <input type="text" id="a-nome" placeholder="Ex: João da Silva" oninput="calcAluguel()">
+        </div>
+        <div class="f">
+          <label>Tipo de locação</label>
+          <div class="tag-group">
+            <div class="tag active" onclick="setTag(this,'a-tipo','residencial',calcAluguel)">Residencial</div>
+            <div class="tag" onclick="setTag(this,'a-tipo','comercial',calcAluguel)">Comercial</div>
+            <div class="tag" onclick="setTag(this,'a-tipo','airbnb',calcAluguel)">Airbnb / Curta</div>
+          </div>
+          <input type="hidden" id="a-tipo" value="residencial">
+        </div>
+        <div class="f">
+          <label>Aluguel mensal total (R$)</label>
+          <input type="number" id="a-aluguel" value="15000" oninput="calcAluguel()">
+        </div>
+        <div class="f">
+          <label>Número de imóveis</label>
+          <input type="number" id="a-imoveis" value="1" min="1" oninput="calcAluguel()">
+        </div>
+        <div class="f">
+          <label>Outras rendas tributáveis/mês (R$)</label>
+          <input type="number" id="a-outras" value="0" placeholder="Salário, pró-labore, etc." oninput="calcAluguel()">
+          <div class="hint">Entra na base do IRPF progressivo como PF</div>
+        </div>
+        <div class="f">
+          <label>Dependentes (IRPF)</label>
+          <input type="number" id="a-dep" value="2" min="0" max="20" oninput="calcAluguel()">
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <div class="card-title">🏢 Parâmetros da Holding</div>
+        <div class="f">
+          <label>Custo anual da holding (R$)</label>
+          <input type="number" id="a-custo" value="24000" placeholder="Contabilidade, registro, etc." oninput="calcAluguel()">
+          <div class="hint">Contabilidade (~R$1.500-2.500/mês)</div>
+        </div>
+        <div class="f">
+          <label>Distribuição mensal de lucros (%)</label>
+          <div class="slider-wrap">
+            <input type="range" id="a-dist" min="0" max="100" value="80" oninput="calcAluguel();document.getElementById('a-dist-v').textContent=this.value+'%'">
+            <span class="slider-val" id="a-dist-v">80%</span>
+          </div>
+          <div class="hint">Percentual do lucro líquido distribuído ao sócio</div>
+        </div>
+        <div class="alert">
+          <strong>Art. 6º-A — Lei 15.270/2025:</strong> dividendos acima de R$ 50.000/mês por empresa sujeitos a 10% de IRRF desde 01/01/2026.
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div class="card-title" id="a-cliente-title">📊 Resultado — Comparativo Tributário</div>
+
+        <div class="result-grid r3">
+          <div class="metric gold">
+            <div class="ml">Aluguel Bruto/Ano</div>
+            <div class="mv" id="a-bruto">R$ 0</div>
+            <div class="ms">receita total</div>
+          </div>
+          <div class="metric red">
+            <div class="ml">Imposto como PF/Ano</div>
+            <div class="mv" id="a-imposto-pf">R$ 0</div>
+            <div class="ms" id="a-aliq-pf">alíquota —</div>
+          </div>
+          <div class="metric accent">
+            <div class="ml">Imposto como Holding/Ano</div>
+            <div class="mv" id="a-imposto-hold">R$ 0</div>
+            <div class="ms" id="a-aliq-hold">alíquota —</div>
+          </div>
+        </div>
+
+        <div class="sec-hdr">Comparativo Detalhado</div>
+        <div style="overflow-x:auto">
+          <table class="cmp-table">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th class="pf-col">Pessoa Física</th>
+                <th class="hold-col">Holding (LP)</th>
+                <th class="eco-col">Diferença</th>
+              </tr>
+            </thead>
+            <tbody id="a-table-body"></tbody>
+          </table>
+        </div>
+
+        <div class="sec-hdr">Carga Tributária Efetiva</div>
+        <div class="bar-wrap" id="a-bars"></div>
+
+        <div id="a-verdict" class="verdict green" style="margin-top:14px">
+          <div class="verdict-icon">🏛️</div>
+          <div class="verdict-text">
+            <div class="vt" id="a-verdict-title">Aguardando cálculo...</div>
+            <div class="vs" id="a-verdict-body"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TAB 2: RENDA PASSIVA ===================== -->
+<div id="tab-renda" class="tab-panel">
+  <div class="calc-grid">
+    <div>
+      <div class="card">
+        <div class="card-title">📈 FIIs — Fundos Imobiliários</div>
+        <div class="f">
+          <label>Valor investido em FIIs (R$)</label>
+          <input type="number" id="r-fii-val" value="500000" oninput="calcRenda()">
+        </div>
+        <div class="f">
+          <label>Dividend Yield médio (% ao ano)</label>
+          <input type="number" id="r-fii-dy" value="8.5" step="0.1" oninput="calcRenda()">
+        </div>
+        <div class="alert"><strong>FIIs:</strong> proventos isentos de IRPF para pessoa física (Art. 3º Lei 11.033/2004) — desde que pessoa física com menos de 10% das cotas e FII com 50+ cotistas.</div>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <div class="card-title">📊 Renda Fixa</div>
+        <div class="r2">
+          <div class="f">
+            <label>CDB (R$)</label>
+            <input type="number" id="r-cdb-val" value="200000" oninput="calcRenda()">
+          </div>
+          <div class="f">
+            <label>Taxa CDB (% CDI)</label>
+            <input type="number" id="r-cdb-cdi" value="100" step="1" oninput="calcRenda()">
+          </div>
+        </div>
+        <div class="r2">
+          <div class="f">
+            <label>LCI/LCA (R$)</label>
+            <input type="number" id="r-lci-val" value="100000" oninput="calcRenda()">
+          </div>
+          <div class="f">
+            <label>Taxa LCI/LCA (% CDI)</label>
+            <input type="number" id="r-lci-cdi" value="90" step="1" oninput="calcRenda()">
+          </div>
+        </div>
+        <div class="r2">
+          <div class="f">
+            <label>Tesouro Direto (R$)</label>
+            <input type="number" id="r-td-val" value="100000" oninput="calcRenda()">
+          </div>
+          <div class="f">
+            <label>Taxa Tesouro (% a.a.)</label>
+            <input type="number" id="r-td-taxa" value="12.5" step="0.1" oninput="calcRenda()">
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <div class="card-title">🏢 Ações / ETFs</div>
+        <div class="f">
+          <label>Valor investido em ações BR (R$)</label>
+          <input type="number" id="r-acoes-val" value="300000" oninput="calcRenda()">
+        </div>
+        <div class="f">
+          <label>Dividend Yield médio (% a.a.)</label>
+          <input type="number" id="r-acoes-dy" value="5.0" step="0.1" oninput="calcRenda()">
+        </div>
+        <div class="f">
+          <label>CDI atual (% a.a.)</label>
+          <input type="number" id="r-cdi" value="13.25" step="0.1" oninput="calcRenda()">
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-title">📊 Resultado — Renda Passiva Mensal</div>
+        <div class="result-grid r3">
+          <div class="metric gold">
+            <div class="ml">Patrimônio Total</div>
+            <div class="mv" id="r-pat">R$ 0</div>
+            <div class="ms">investido</div>
+          </div>
+          <div class="metric green">
+            <div class="ml">Renda Bruta/Mês</div>
+            <div class="mv" id="r-bruta">R$ 0</div>
+            <div class="ms" id="r-bruta-ano">R$ 0/ano</div>
+          </div>
+          <div class="metric accent">
+            <div class="ml">Renda Líquida/Mês</div>
+            <div class="mv" id="r-liquida">R$ 0</div>
+            <div class="ms" id="r-aliq-ef">após IR</div>
+          </div>
+        </div>
+        <div class="sec-hdr">Breakdown por Ativo</div>
+        <div style="overflow-x:auto">
+          <table class="cmp-table">
+            <thead>
+              <tr>
+                <th>Ativo</th>
+                <th>Patrimônio</th>
+                <th>Renda Bruta/Mês</th>
+                <th>IR</th>
+                <th>Renda Líq./Mês</th>
+              </tr>
+            </thead>
+            <tbody id="r-table-body"></tbody>
+          </table>
+        </div>
+        <div class="sec-hdr">Composição da Renda (Mensal)</div>
+        <div class="bar-wrap" id="r-bars"></div>
+        <div class="sec-hdr">Meta de Renda Passiva</div>
+        <div class="r2">
+          <div class="f">
+            <label>Meta mensal desejada (R$)</label>
+            <input type="number" id="r-meta" value="50000" oninput="calcRenda()">
+          </div>
+          <div class="f">
+            <label>Taxa de retorno esperada (% a.a.)</label>
+            <input type="number" id="r-ret" value="8.0" step="0.1" oninput="calcRenda()">
+          </div>
+        </div>
+        <div id="r-meta-result" class="verdict green"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TAB 3: GCAP ===================== -->
+<div id="tab-gcap" class="tab-panel">
+  <div class="calc-grid">
+    <div>
+      <div class="card">
+        <div class="card-title">🏦 Dados da Operação</div>
+        <div class="f">
+          <label>Tipo de bem alienado</label>
+          <select id="g-tipo" onchange="calcGcap()">
+            <option value="imovel">Imóvel (residencial/comercial)</option>
+            <option value="rural">Imóvel Rural</option>
+            <option value="cotas">Cotas Societárias / Ações</option>
+            <option value="outros">Outros bens e direitos</option>
+          </select>
+        </div>
+        <div class="f">
+          <label>Valor de aquisição (R$)</label>
+          <input type="number" id="g-aq" value="500000" oninput="calcGcap()">
+        </div>
+        <div class="f">
+          <label>Benfeitorias / melhorias (R$)</label>
+          <input type="number" id="g-benf" value="50000" oninput="calcGcap()">
+          <div class="hint">Somam ao custo — reduzem o ganho</div>
+        </div>
+        <div class="f">
+          <label>Valor de venda (R$)</label>
+          <input type="number" id="g-venda" value="2000000" oninput="calcGcap()">
+        </div>
+        <div class="f">
+          <label>Despesas de venda (corretagem, etc.) (R$)</label>
+          <input type="number" id="g-desp" value="60000" oninput="calcGcap()">
+        </div>
+        <div class="r2">
+          <div class="f">
+            <label>Ano de aquisição</label>
+            <input type="number" id="g-ano" value="2010" min="1950" max="2026" oninput="calcGcap()">
+          </div>
+          <div class="f">
+            <label>Mês de venda</label>
+            <select id="g-mes-venda" onchange="calcGcap()">
+              <option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option>
+              <option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option>
+              <option value="7">Julho</option><option value="8">Agosto</option><option value="9">Setembro</option>
+              <option value="10">Outubro</option><option value="11">Novembro</option><option value="12" selected>Dezembro</option>
+            </select>
+          </div>
+        </div>
+        <div class="f" id="g-parcel-wrap">
+          <label>Venda parcelada?</label>
+          <div class="tag-group">
+            <div class="tag active" onclick="setTag(this,'g-parcel','nao',calcGcap)">À vista</div>
+            <div class="tag" onclick="setTag(this,'g-parcel','sim',calcGcap)">Parcelada</div>
+          </div>
+          <input type="hidden" id="g-parcel" value="nao">
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-title">📊 Apuração do GCAP</div>
+        <div class="result-grid">
+          <div class="metric gold">
+            <div class="ml">Ganho de Capital</div>
+            <div class="mv" id="g-ganho">R$ 0</div>
+            <div class="ms" id="g-reducao-label">sem fator de redução</div>
+          </div>
+          <div class="metric red">
+            <div class="ml">GCAP a Recolher</div>
+            <div class="mv" id="g-imposto">R$ 0</div>
+            <div class="ms" id="g-aliq-ef">alíquota efetiva —</div>
+          </div>
+        </div>
+        <div class="sec-hdr">Memória de Cálculo</div>
+        <div id="g-memoria" style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:11px;line-height:2;font-family:monospace;color:var(--muted)"></div>
+        <div class="sec-hdr">Faixas Progressivas (Lei 13.259/2016)</div>
+        <div id="g-faixas-bars"></div>
+        <div class="sec-hdr">Informações para o DARF</div>
+        <div id="g-darf" style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:11px;line-height:2">
+        </div>
+        <div id="g-verdict" class="verdict green" style="margin-top:14px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TAB 4: IRPF-M ===================== -->
+<div id="tab-irpfm" class="tab-panel">
+  <div class="calc-grid">
+    <div>
+      <div class="card">
+        <div class="card-title">⚖️ Rendimentos Anuais — Base IRPF-M</div>
+        <div class="alert" style="margin-bottom:14px">
+          <strong>Lei 15.270/2025 — vigência 01/01/2026.</strong> IRPF Mínimo de 10% sobre renda total acima de R$ 1,2M/ano. FIIs explicitamente excluídos da base (Art. 16-A §1º V-i).
+        </div>
+        <div class="f">
+          <label>Subsídio / Remuneração (R$/ano)</label>
+          <input type="number" id="m-subsidio" value="600000" oninput="calcIrpfm()">
+        </div>
+        <div class="f">
+          <label>Aluguel recebido (R$/ano)</label>
+          <input type="number" id="m-aluguel" value="180000" oninput="calcIrpfm()">
+        </div>
+        <div class="f">
+          <label>Dividendos de empresas BR (R$/ano)</label>
+          <input type="number" id="m-divbr" value="120000" oninput="calcIrpfm()">
+          <div class="hint">Incluem-se na base do IRPF-M após o IRRF 10% (Art. 6º-A)</div>
+        </div>
+        <div class="f">
+          <label>Lucro em operações de ações (R$/ano)</label>
+          <input type="number" id="m-acoes" value="50000" oninput="calcIrpfm()">
+        </div>
+        <div class="f">
+          <label>Rendimentos no exterior / Offshore (R$/ano)</label>
+          <input type="number" id="m-ext" value="0" oninput="calcIrpfm()">
+        </div>
+        <div class="f">
+          <label>Proventos de FIIs (R$/ano)</label>
+          <input type="number" id="m-fii" value="85000" oninput="calcIrpfm()">
+          <div class="hint" style="color:var(--g)">✓ FIIs excluídos da base do IRPF-M (Art. 16-A §1º V-i)</div>
+        </div>
+        <div class="f">
+          <label>Outros rendimentos tributáveis (R$/ano)</label>
+          <input type="number" id="m-outros" value="0" oninput="calcIrpfm()">
+        </div>
+        <div class="sec-hdr">Deduções</div>
+        <div class="f">
+          <label>IR retido na fonte durante o ano (R$)</label>
+          <input type="number" id="m-irrf" value="0" oninput="calcIrpfm()">
+          <div class="hint">IRRF sobre dividendos (10%), salário, etc.</div>
+        </div>
+        <div class="f">
+          <label>Dependentes</label>
+          <input type="number" id="m-dep" value="2" min="0" oninput="calcIrpfm()">
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-title">📊 Resultado IRPF-M — Lei 15.270/2025</div>
+        <div class="result-grid">
+          <div class="metric gold">
+            <div class="ml">Renda Total Bruta</div>
+            <div class="mv" id="m-total-bruto">R$ 0</div>
+            <div class="ms">todos os rendimentos</div>
+          </div>
+          <div class="metric accent">
+            <div class="ml">Base do IRPF-M</div>
+            <div class="mv" id="m-base-irpfm">R$ 0</div>
+            <div class="ms">excluindo FIIs</div>
+          </div>
+        </div>
+        <div class="result-grid">
+          <div class="metric red">
+            <div class="ml">IRPF Progressivo</div>
+            <div class="mv" id="m-irpf-prog">R$ 0</div>
+            <div class="ms">tabela progressiva</div>
+          </div>
+          <div class="metric purple">
+            <div class="ml">IRPF-M (10% mín.)</div>
+            <div class="mv" id="m-irpfm-val">R$ 0</div>
+            <div class="ms">mínimo obrigatório</div>
+          </div>
+        </div>
+        <div class="sec-hdr">Memória de Cálculo IRPF-M</div>
+        <div id="m-memoria" style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:11px;line-height:2;font-family:monospace;color:var(--muted)"></div>
+        <div class="sec-hdr">Composição da Renda</div>
+        <div class="bar-wrap" id="m-bars"></div>
+        <div id="m-verdict" class="verdict green" style="margin-top:14px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- .main -->
+
+<script>
+// ============================================================
+// UTILITIES
+// ============================================================
+const fmt = (v, d=0) => 'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
+const fmtPct = (v, d=1) => Number(v).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})+'%';
+const el = id => document.getElementById(id);
+const val = id => parseFloat(el(id).value)||0;
+
+function setTag(clicked, hiddenId, value, cb){
+  clicked.closest('.tag-group').querySelectorAll('.tag').forEach(t=>t.classList.remove('active'));
+  clicked.classList.add('active');
+  el(hiddenId).value = value;
+  if(cb) cb();
+}
+
+function showTab(name, btn){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  el('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+}
+
+function bar(label, value, max, color, extra=''){
+  const pct = max>0 ? Math.min(100, value/max*100) : 0;
+  return `<div class="bar-row">
+    <div class="bar-label">${label}</div>
+    <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}">${pct>12?fmt(value):''}</div></div>
+    <div class="bar-val" style="color:${color}">${fmt(value)}</div>
+  </div>`;
+}
+
+function tableRow(label, pf, hold, diff, isTotal=false, diffIsGood=true){
+  const diffColor = diff>0?(diffIsGood?'var(--g)':'var(--r)'):diff<0?'var(--r)':'var(--muted)';
+  const diffSign = diff>0?'+':'';
+  const sty = isTotal ? 'font-weight:800;border-top:2px solid var(--border);font-size:13px' : '';
+  return `<tr style="${sty}">
+    <td>${label}</td>
+    <td class="pf-col">${fmt(pf)}</td>
+    <td class="hold-col">${fmt(hold)}</td>
+    <td style="color:${diffColor}">${diffSign}${fmt(diff)}</td>
+  </tr>`;
+}
+
+// ============================================================
+// IRPF PROGRESSIVO
+// ============================================================
+function calcIrpfProgressivo(rendaAnual, numDep){
+  const ded = numDep * 2275.08;
+  const base = Math.max(0, rendaAnual - ded);
+  let imposto = 0;
+  const faixas = [
+    [27110.40, 0],
+    [33919.80, 0.075, 2033.28],
+    [45012.60, 0.15,  4881.06],
+    [55976.16, 0.225, 8252.38],
+    [Infinity,  0.275, 11053.00]
+  ];
+  for(let i=0;i<faixas.length;i++){
+    if(base <= faixas[i][0]){
+      if(i>0) imposto = base * faixas[i][1] - faixas[i][2];
+      break;
+    }
+  }
+  return Math.max(0, imposto);
+}
+
+// ============================================================
+// TAB 1: ALUGUEL
+// ============================================================
+function calcAluguel(){
+  const aluguelMes = val('a-aluguel');
+  const nImoveis   = Math.max(1, val('a-imoveis'));
+  const aluguelTotal = aluguelMes * nImoveis;
+  const outras     = val('a-outras');
+  const dep        = val('a-dep');
+  const custoHold  = val('a-custo');
+  const distPct    = val('a-dist') / 100;
+  const nome       = el('a-nome').value.trim();
+
+  // Update title
+  el('a-cliente-title').textContent = nome
+    ? `📊 Resultado — ${nome}`
+    : '📊 Resultado — Comparativo Tributário';
+
+  const aluguelAno = aluguelTotal * 12;
+  const outrasAno  = outras * 12;
+
+  // --- PF: IRPF progressivo sobre renda total ---
+  const rendaTotalPF = aluguelAno + outrasAno;
+  const irpfTotal = calcIrpfProgressivo(rendaTotalPF, dep);
+  const irpfOutras = calcIrpfProgressivo(outrasAno, dep);
+  const irpfAluguel = Math.max(0, irpfTotal - irpfOutras);
+  const impostoPF = irpfAluguel; // IR sobre a parcela do aluguel
+  const aliqEfPF = aluguelAno > 0 ? impostoPF / aluguelAno * 100 : 0;
+  const liquidoPF = aluguelAno - impostoPF;
+
+  // --- HOLDING: Lucro Presumido ---
+  // PIS + COFINS
+  const pis    = aluguelAno * 0.0065;
+  const cofins = aluguelAno * 0.03;
+
+  // IRPJ (presunção 32%)
+  const baseIRPJ = aluguelAno * 0.32;
+  const irpj     = baseIRPJ * 0.15;
+  // Adicional: 10% sobre o que exceder R$240k/ano (R$20k/mês)
+  const adicBase = Math.max(0, baseIRPJ - 240000);
+  const adicional = adicBase * 0.10;
+
+  // CSLL (presunção 32%)
+  const csll = aluguelAno * 0.32 * 0.09;
+
+  const totalHoldTrib = pis + cofins + irpj + adicional + csll;
+  const lucroLiquido = aluguelAno - totalHoldTrib - custoHold;
+  const valorDistrib = Math.max(0, lucroLiquido * distPct);
+
+  // Dividendo (Art. 6º-A Lei 15.270/2025): 10% se dist. mensal > R$50k
+  const distribMes = valorDistrib / 12;
+  const divTax = distribMes > 50000 ? valorDistrib * 0.10 : 0;
+
+  const impostoHoldTotal = totalHoldTrib + divTax;
+  const aliqEfHold = aluguelAno > 0 ? impostoHoldTotal / aluguelAno * 100 : 0;
+  const liquidoHold = aluguelAno - impostoHoldTotal - custoHold;
+
+  const economia = impostoPF - impostoHoldTotal;
+  const economiaAnual = impostoPF - (impostoHoldTotal + custoHold);
+
+  // Update metrics
+  el('a-bruto').textContent = fmt(aluguelAno);
+  el('a-imposto-pf').textContent = fmt(impostoPF);
+  el('a-aliq-pf').textContent = `alíquota efetiva ${fmtPct(aliqEfPF)}`;
+  el('a-imposto-hold').textContent = fmt(impostoHoldTotal);
+  el('a-aliq-hold').textContent = `alíquota efetiva ${fmtPct(aliqEfHold)}`;
+
+  // Table
+  el('a-table-body').innerHTML =
+    tableRow('Aluguel Bruto/Ano',        aluguelAno, aluguelAno, 0) +
+    tableRow('(-) PIS',                  0, pis,    -pis,   false) +
+    tableRow('(-) COFINS',               0, cofins, -cofins,false) +
+    tableRow('(-) IRPJ',                 0, irpj,   -irpj,  false) +
+    tableRow('(-) Adicional IRPJ',       0, adicional,-adicional,false) +
+    tableRow('(-) CSLL',                 0, csll,   -csll,  false) +
+    tableRow('(-) IRPF progressivo',     impostoPF, 0, impostoPF, true) +
+    tableRow('(-) Custo da Holding/ano', 0, custoHold, -custoHold, false) +
+    tableRow('(-) IR dividendos (10%)',  0, divTax, -divTax, false) +
+    tableRow('✔ Líquido no bolso/Ano',  liquidoPF, liquidoHold, liquidoHold-liquidoPF, true, true);
+
+  // Bars
+  const maxBar = Math.max(impostoPF, impostoHoldTotal + custoHold) * 1.1;
+  el('a-bars').innerHTML =
+    bar('PF — IRPF', impostoPF, maxBar, 'var(--y)') +
+    bar('Holding — Impostos', impostoHoldTotal, maxBar, 'var(--teal)') +
+    bar('Holding — Custo total', impostoHoldTotal + custoHold, maxBar, '#818cf8');
+
+  // Verdict
+  const vEl = el('a-verdict');
+  const vT  = el('a-verdict-title');
+  const vB  = el('a-verdict-body');
+  if(economiaAnual > 1000){
+    vEl.className='verdict green';
+    vT.textContent = `✅ Holding recomendada — economia de ${fmt(economiaAnual)}/ano`;
+    vB.textContent = `Considerando os impostos e o custo anual da holding (${fmt(custoHold)}), a estrutura jurídica economiza ${fmt(economiaAnual)} por ano. Ponto de retorno do investimento na abertura da holding: imediato no fluxo anual.`;
+  } else if(economiaAnual > -5000){
+    vEl.className='verdict yellow';
+    vT.textContent = '⚠️ Holding neutro — analise caso a caso';
+    vB.textContent = `A economia tributária (${fmt(economia)}) não supera significativamente o custo da estrutura (${fmt(custoHold)}/ano). A holding pode ainda ser indicada por proteção patrimonial e sucessória, mesmo sem vantagem tributária expressiva.`;
+  } else {
+    vEl.className='verdict red';
+    vT.textContent = '❌ PF mais eficiente para este perfil';
+    vB.textContent = `Com o volume atual de aluguel, o custo da holding (${fmt(custoHold)}/ano) supera a economia tributária. Considere a holding apenas se há objetivo de proteção patrimonial, sucessão ou crescimento do patrimônio imobiliário.`;
+  }
+}
+
+// ============================================================
+// TAB 2: RENDA PASSIVA
+// ============================================================
+function calcRenda(){
+  const cdi = val('r-cdi') / 100;
+
+  // FII
+  const fiiVal = val('r-fii-val');
+  const fiiDY  = val('r-fii-dy') / 100;
+  const fiiBruta = fiiVal * fiiDY / 12;
+  const fiiIR = 0; // isento
+  const fiiLiq = fiiBruta;
+
+  // CDB
+  const cdbVal = val('r-cdb-val');
+  const cdbCDI = val('r-cdb-cdi') / 100;
+  const cdbTaxa = cdi * cdbCDI;
+  const cdbBruta = cdbVal * cdbTaxa / 12;
+  const cdbIR = cdbBruta * 0.15; // 15% IR (prazo >720 dias)
+  const cdbLiq = cdbBruta - cdbIR;
+
+  // LCI/LCA
+  const lciVal = val('r-lci-val');
+  const lciCDI = val('r-lci-cdi') / 100;
+  const lciTaxa = cdi * lciCDI;
+  const lciBruta = lciVal * lciTaxa / 12;
+  const lciIR = 0; // isento
+  const lciLiq = lciBruta;
+
+  // Tesouro Direto
+  const tdVal  = val('r-td-val');
+  const tdTaxa = val('r-td-taxa') / 100;
+  const tdBruta = tdVal * tdTaxa / 12;
+  const tdIR = tdBruta * 0.15; // 15% (>720 dias)
+  const tdLiq = tdBruta - tdIR;
+
+  // Ações
+  const acoesVal = val('r-acoes-val');
+  const acoesDY  = val('r-acoes-dy') / 100;
+  const acoesBruta = acoesVal * acoesDY / 12;
+  const acoesIR = 0; // dividendos isentos (por ora)
+  const acoesLiq = acoesBruta;
+
+  const totalPat  = fiiVal + cdbVal + lciVal + tdVal + acoesVal;
+  const totalBruta = fiiBruta + cdbBruta + lciBruta + tdBruta + acoesBruta;
+  const totalLiq  = fiiLiq + cdbLiq + lciLiq + tdLiq + acoesLiq;
+  const totalIR   = totalBruta - totalLiq;
+
+  el('r-pat').textContent = fmt(totalPat);
+  el('r-bruta').textContent = fmt(totalBruta);
+  el('r-bruta-ano').textContent = fmt(totalBruta*12)+'/ano';
+  el('r-liquida').textContent = fmt(totalLiq);
+  el('r-aliq-ef').textContent = totalBruta>0 ? `IR efetivo ${fmtPct(totalIR/totalBruta*100)}` : 'após IR';
+
+  el('r-table-body').innerHTML = [
+    ['🏢 FIIs', fiiVal, fiiBruta, fiiIR, fiiLiq, 'var(--teal)', 'Isento (Art. 3º Lei 11.033)'],
+    ['💰 CDB', cdbVal, cdbBruta, cdbIR, cdbLiq, 'var(--y)', 'IR 15% (>720d)'],
+    ['🏠 LCI/LCA', lciVal, lciBruta, lciIR, lciLiq, 'var(--g)', 'Isento PF'],
+    ['🇧🇷 Tesouro', tdVal, tdBruta, tdIR, tdLiq, 'var(--accent)', 'IR 15% (>720d)'],
+    ['📊 Ações BR', acoesVal, acoesBruta, acoesIR, acoesLiq, 'var(--purple)', 'Dividendos isentos'],
+  ].map(([n,p,b,ir,l,c])=>`<tr>
+    <td style="color:${c};font-weight:700">${n}</td>
+    <td>${fmt(p)}</td>
+    <td>${fmt(b)}</td>
+    <td style="color:var(--r)">${fmt(ir)}</td>
+    <td style="color:var(--g)">${fmt(l)}</td>
+  </tr>`).join('') +
+  `<tr style="font-weight:800;border-top:2px solid var(--border)">
+    <td>TOTAL</td><td>${fmt(totalPat)}</td><td>${fmt(totalBruta)}</td>
+    <td style="color:var(--r)">${fmt(totalIR)}</td>
+    <td style="color:var(--g)">${fmt(totalLiq)}</td>
+  </tr>`;
+
+  const maxB = Math.max(fiiBruta,cdbBruta,lciBruta,tdBruta,acoesBruta)*1.2||1;
+  el('r-bars').innerHTML =
+    bar('FIIs (isento)',   fiiBruta,  maxB, 'var(--teal)') +
+    bar('CDB',            cdbLiq,    maxB, 'var(--y)') +
+    bar('LCI/LCA (isento)',lciLiq,   maxB, 'var(--g)') +
+    bar('Tesouro Direto', tdLiq,     maxB, 'var(--accent)') +
+    bar('Ações BR',       acoesLiq,  maxB, 'var(--purple)');
+
+  // Meta
+  const meta = val('r-meta');
+  const ret  = val('r-ret') / 100;
+  const patNecessario = ret > 0 ? (meta * 12) / ret : 0;
+  const falta = Math.max(0, patNecessario - totalPat);
+  const mEl = el('r-meta-result');
+  if(totalLiq >= meta){
+    mEl.className='verdict green';
+    mEl.innerHTML=`<div class="verdict-icon">🎯</div><div class="verdict-text"><div class="vt">Meta atingida!</div><div class="vs">Renda líquida de ${fmt(totalLiq)}/mês supera a meta de ${fmt(meta)}/mês. Excedente: ${fmt(totalLiq-meta)}/mês.</div></div>`;
+  } else {
+    mEl.className='verdict yellow';
+    mEl.innerHTML=`<div class="verdict-icon">📈</div><div class="verdict-text"><div class="vt">Meta: ${fmt(meta)}/mês</div><div class="vs">Renda atual: ${fmt(totalLiq)}/mês (${fmtPct(totalLiq/meta*100)} da meta). Para atingir a meta com ${fmtPct(val('r-ret'))} de retorno, o patrimônio necessário é de ${fmt(patNecessario)}. Faltam ${fmt(falta)}.</div></div>`;
+  }
+}
+
+// ============================================================
+// TAB 3: GCAP
+// ============================================================
+function calcGcap(){
+  const tipo  = el('g-tipo').value;
+  const aq    = val('g-aq');
+  const benf  = val('g-benf');
+  const venda = val('g-venda');
+  const desp  = val('g-desp');
+  const ano   = val('g-ano');
+  const mes   = val('g-mes-venda');
+
+  const custoTotal = aq + benf;
+  const receitaLiq = venda - desp;
+  let ganho = receitaLiq - custoTotal;
+
+  // Fator de redução (imóveis adq. antes de 1989, Lei 7.713/1988)
+  let reducao = 0;
+  let reducaoLabel = 'sem fator de redução';
+  if((tipo==='imovel'||tipo==='rural') && ano < 1969){
+    reducao = 1.0; reducaoLabel = '100% — isento (adq. antes de 1969)';
+  } else if((tipo==='imovel'||tipo==='rural') && ano >= 1969 && ano <= 1988){
+    const pct = (1988 - ano + 1) * 0.05;
+    reducao = Math.min(pct, 0.95);
+    reducaoLabel = `Fator ${fmtPct(reducao*100)} (adq. em ${ano}, Lei 7.713/1988)`;
+  }
+
+  ganho = Math.max(0, ganho * (1 - reducao));
+
+  // Alíquotas progressivas (Lei 13.259/2016)
+  let imposto = 0;
+  let memoria = '';
+  const faixas=[
+    {lim:5000000,     al:0.15,   prev:0},
+    {lim:10000000,    al:0.175,  prev:5000000},
+    {lim:30000000,    al:0.20,   prev:10000000},
+    {lim:Infinity,    al:0.225,  prev:30000000},
+  ];
+  let ganhoRestante = ganho;
+  let faixasBars = '';
+  for(const f of faixas){
+    if(ganhoRestante<=0) break;
+    const base = Math.min(ganhoRestante, f.lim - f.prev);
+    const tax  = base * f.al;
+    imposto   += tax;
+    const pctFmt = fmtPct(f.al*100,1);
+    faixasBars += bar(`Faixa ${pctFmt}`, tax, ganho*0.3||1, 'var(--r)');
+    ganhoRestante -= base;
+  }
+  if(ganho<=0) imposto=0;
+
+  const aliqEf = ganho>0 ? imposto/ganho*100 : 0;
+  const vencMes = mes<12 ? mes+1 : 1;
+  const vencAno = mes<12 ? 2026 : 2027;
+  const meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+  el('g-ganho').textContent = fmt(ganho);
+  el('g-reducao-label').textContent = reducaoLabel;
+  el('g-imposto').textContent = fmt(imposto);
+  el('g-aliq-ef').textContent = `alíquota efetiva ${fmtPct(aliqEf)}`;
+
+  el('g-memoria').innerHTML = `
+Valor de venda:          ${fmt(venda)}<br>
+(-) Despesas de venda:   ${fmt(desp)}<br>
+Receita líquida:         ${fmt(receitaLiq)}<br><br>
+(-) Custo de aquisição:  ${fmt(aq)}<br>
+(-) Benfeitorias:        ${fmt(benf)}<br>
+Custo total:             ${fmt(custoTotal)}<br><br>
+Ganho bruto:             ${fmt(receitaLiq - custoTotal)}<br>
+${reducao>0?`Fator de redução (${fmtPct(reducao*100)}): -${fmt((receitaLiq-custoTotal)*reducao)}<br>`:''}
+<strong style="color:var(--gold)">Ganho tributável: ${fmt(ganho)}</strong><br><br>
+GCAP (alíq. efetiva ${fmtPct(aliqEf)}): <strong style="color:var(--r)">${fmt(imposto)}</strong>`;
+
+  el('g-faixas-bars').innerHTML = faixasBars || '<div style="color:var(--muted);font-size:11px;padding:8px">Sem imposto — ganho zero ou ativo isento</div>';
+
+  el('g-darf').innerHTML = `
+<span style="color:var(--muted)">Código DARF:</span> <strong style="color:var(--gold)">4600</strong> — Ganho de Capital PF<br>
+<span style="color:var(--muted)">Vencimento:</span> <strong>Último dia útil de ${meses[vencMes-1]}/${vencAno}</strong><br>
+<span style="color:var(--muted)">Valor:</span> <strong style="color:var(--r)">${fmt(imposto)}</strong><br>
+<span style="color:var(--muted)">Programa:</span> GCAP — Receita Federal (gcap.receita.fazenda.gov.br)`;
+
+  const vEl=el('g-verdict');
+  if(ganho<=0){
+    vEl.className='verdict green';
+    vEl.innerHTML='<div class="verdict-icon">✅</div><div class="verdict-text"><div class="vt">Sem imposto — operação sem ganho</div><div class="vs">O valor de venda líquido não supera o custo de aquisição. Não há GCAP a recolher.</div></div>';
+  } else if(reducao>=1){
+    vEl.className='verdict green';
+    vEl.innerHTML='<div class="verdict-icon">✅</div><div class="verdict-text"><div class="vt">Isento — imóvel adquirido antes de 1969</div><div class="vs">Pelo fator de redução de 100% (Lei 7.713/1988), não há imposto a recolher.</div></div>';
+  } else {
+    vEl.className='verdict red';
+    vEl.innerHTML=`<div class="verdict-icon">⚠️</div><div class="verdict-text"><div class="vt">GCAP de ${fmt(imposto)} — recolher até ${meses[vencMes-1]}/${vencAno}</div><div class="vs">Alíquota efetiva de ${fmtPct(aliqEf)} sobre o ganho. Pague via DARF código 4600. Atraso gera multa de 0,33%/dia (máx. 20%) + SELIC.</div></div>`;
+  }
+}
+
+// ============================================================
+// TAB 4: IRPF-M
+// ============================================================
+function calcIrpfm(){
+  const subsidio = val('m-subsidio');
+  const aluguel  = val('m-aluguel');
+  const divBR    = val('m-divbr');
+  const acoes    = val('m-acoes');
+  const ext      = val('m-ext');
+  const fii      = val('m-fii'); // excluído da base
+  const outros   = val('m-outros');
+  const irrf     = val('m-irrf');
+  const dep      = val('m-dep');
+
+  const totalBruto = subsidio + aluguel + divBR + acoes + ext + fii + outros;
+  const baseIrpfm  = subsidio + aluguel + divBR + acoes + ext + outros; // sem FII
+
+  // IRPF progressivo sobre base (sem FII)
+  const irpfProg = Math.max(0, calcIrpfProgressivo(baseIrpfm, dep) - irrf);
+
+  // IRPF-M: 10% sobre o que exceder R$1.200.000/ano na base
+  const limiteIsencao = 1200000;
+  const baseExcedente = Math.max(0, baseIrpfm - limiteIsencao);
+  const irpfmBruto    = baseExcedente * 0.10;
+
+  // IRPF-M é o máximo entre progressivo e o mínimo
+  const irpfmDevido = Math.max(0, irpfmBruto - irrf - irpfProg);
+  const totalImposto = irpfProg + irpfmDevido + irrf;
+
+  el('m-total-bruto').textContent = fmt(totalBruto);
+  el('m-base-irpfm').textContent = fmt(baseIrpfm);
+  el('m-irpf-prog').textContent = fmt(irpfProg);
+  el('m-irpfm-val').textContent = fmt(irpfmDevido);
+
+  el('m-memoria').innerHTML = `
+<strong style="color:var(--accent)">— COMPOSIÇÃO DA BASE DO IRPF-M —</strong><br>
+Subsídio / Remuneração:   ${fmt(subsidio)}<br>
+(+) Aluguel:              ${fmt(aluguel)}<br>
+(+) Dividendos BR:        ${fmt(divBR)}<br>
+(+) Lucro ações:          ${fmt(acoes)}<br>
+(+) Renda exterior:       ${fmt(ext)}<br>
+(+) Outros:               ${fmt(outros)}<br>
+<span style="color:var(--g)">(✗) FIIs (excluídos):     ${fmt(fii)} — Art. 16-A §1º V-i</span><br>
+<strong style="color:var(--gold)">Base IRPF-M:              ${fmt(baseIrpfm)}</strong><br><br>
+<strong style="color:var(--accent)">— CÁLCULO IRPF-M —</strong><br>
+Base IRPF-M:              ${fmt(baseIrpfm)}<br>
+(-) Limite isenção:       ${fmt(limiteIsencao)}<br>
+Base excedente:           ${fmt(baseExcedente)}<br>
+IRPF-M bruto (10%):       ${fmt(irpfmBruto)}<br>
+(-) IRRF já retido:       ${fmt(irrf)}<br>
+(-) IRPF progressivo:     ${fmt(irpfProg)}<br>
+<strong style="color:var(--r)">IRPF-M devido:            ${fmt(irpfmDevido)}</strong>`;
+
+  const maxB = Math.max(subsidio,aluguel,divBR,fii,acoes,ext)*1.2||1;
+  el('m-bars').innerHTML =
+    bar('Subsídio/Remuneração', subsidio, maxB, 'var(--y)') +
+    bar('Aluguel', aluguel, maxB, 'var(--teal)') +
+    bar('Dividendos BR', divBR, maxB, 'var(--accent)') +
+    bar('Lucro em Ações', acoes, maxB, 'var(--purple)') +
+    (fii>0 ? bar('FIIs (excluído base)', fii, maxB, 'var(--g)') : '') +
+    (ext>0 ? bar('Renda Exterior', ext, maxB, 'var(--orange)') : '');
+
+  const vEl = el('m-verdict');
+  if(baseIrpfm <= limiteIsencao){
+    vEl.className='verdict green';
+    vEl.innerHTML=`<div class="verdict-icon">✅</div><div class="verdict-text"><div class="vt">Abaixo do limiar — sem IRPF-M</div><div class="vs">Base de ${fmt(baseIrpfm)} está abaixo do limite de ${fmt(limiteIsencao)}/ano. IRPF-M não se aplica. Margem disponível: ${fmt(limiteIsencao-baseIrpfm)}.</div></div>`;
+  } else if(irpfmDevido <= 0){
+    vEl.className='verdict green';
+    vEl.innerHTML=`<div class="verdict-icon">✅</div><div class="verdict-text"><div class="vt">IRPF progressivo já cobre o mínimo</div><div class="vs">O IRPF progressivo pago (${fmt(irpfProg)}) mais os créditos de IRRF (${fmt(irrf)}) já superam o IRPF-M calculado. Sem tributo adicional.</div></div>`;
+  } else {
+    vEl.className='verdict red';
+    vEl.innerHTML=`<div class="verdict-icon">⚠️</div><div class="verdict-text"><div class="vt">IRPF-M adicional de ${fmt(irpfmDevido)}</div><div class="vs">Base de ${fmt(baseIrpfm)} excede R$ 1,2M/ano em ${fmt(baseExcedente)}. O imposto mínimo de 10% gera um complemento de ${fmt(irpfmDevido)} além do IRPF progressivo. Vigência: a partir de 2026 (DIRPF 2027).</div></div>`;
+  }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+calcAluguel();
+calcRenda();
+calcGcap();
+calcIrpfm();
+</script>
+</body>
+</html>
