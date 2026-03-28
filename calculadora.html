@@ -12,7 +12,7 @@
   --purple:#a78bfa;--teal:#2dd4bf;--orange:#fb923c;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;min-height:100vh}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif;font-size:13px;min-height:100vh}
 /* HEADER */
 .hdr{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between}
 .hdr-left{display:flex;align-items:center;gap:10px}
@@ -539,7 +539,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 // ============================================================
 // UTILITIES
 // ============================================================
-const fmt = (v, d=0) => 'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
+const fmt = (v, d=0) => { const n = Number(v)||0; return 'R$ '+Math.abs(n).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d}); };
+const fmtSigned = (v, d=0) => { const n = Number(v)||0; const abs = Math.abs(n).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d}); return (n<0?'-':'+')+' R$ '+abs; };
 const fmtPct = (v, d=1) => Number(v).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})+'%';
 const el = id => document.getElementById(id);
 const val = id => parseFloat(el(id).value)||0;
@@ -568,14 +569,15 @@ function bar(label, value, max, color, extra=''){
 }
 
 function tableRow(label, pf, hold, diff, isTotal=false, diffIsGood=true){
-  const diffColor = diff>0?(diffIsGood?'var(--g)':'var(--r)'):diff<0?'var(--r)':'var(--muted)';
-  const diffSign = diff>0?'+':'';
+  const d = Math.round(diff);
+  const diffColor = d>0?(diffIsGood?'var(--g)':'var(--r)'):d<0?'var(--r)':'var(--muted)';
+  const diffStr = d===0 ? '—' : (d>0?'+ ':'- ')+'R$ '+Math.abs(d).toLocaleString('pt-BR');
   const sty = isTotal ? 'font-weight:800;border-top:2px solid var(--border);font-size:13px' : '';
   return `<tr style="${sty}">
     <td>${label}</td>
     <td class="pf-col">${fmt(pf)}</td>
     <td class="hold-col">${fmt(hold)}</td>
-    <td style="color:${diffColor}">${diffSign}${fmt(diff)}</td>
+    <td style="color:${diffColor}">${diffStr}</td>
   </tr>`;
 }
 
